@@ -6,8 +6,8 @@ import xarray as xr
 from cartopy import crs as ccrs, util as cutil
 from matplotlib.figure import Figure
 
-from keeler.paleoclimate import plot_land, seasonal_plot
-from keeler.utils import get_max_colormap_value
+from cesm_toolbox.paleoclimate import plot_land, seasonal_plot
+from cesm_toolbox.utils import get_max_colormap_value
 
 
 def plot_geospatial_scalar(

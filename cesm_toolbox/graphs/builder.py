@@ -6,13 +6,13 @@ import numpy as np
 import xarray as xr
 from matplotlib.figure import Figure
 
-from keeler.graphs.plotting import (
+from cesm_toolbox.graphs.plotting import (
     plot_geospatial_scalar,
     plot_geospatial_scalar_differences,
     plot_geospatial_seasonal_scalar,
 )
-from keeler.paleoclimate import read_cam_data, plot_land, seasonal_plot
-from keeler.utils import to_lower_snake_case
+from cesm_toolbox.paleoclimate import read_cam_data, plot_land, seasonal_plot
+from cesm_toolbox.utils import to_lower_snake_case
 
 
 Self = TypeVar("Self")

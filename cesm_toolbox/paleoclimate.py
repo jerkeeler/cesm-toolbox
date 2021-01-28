@@ -8,7 +8,7 @@ import xarray as xr
 from dateutil.relativedelta import relativedelta
 from matplotlib.figure import Axes
 
-from keeler.consts import KELVIN_OFFSET, YEARS_IN_SECONDS
+from cesm_toolbox.consts import KELVIN_OFFSET, YEARS_IN_SECONDS
 
 
 def plot_land(ax: Axes, land_frac: xr.DataArray, threshold=0.5):
