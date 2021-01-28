@@ -1,18 +1,26 @@
-import colorsys
 from datetime import datetime
 from typing import List, Union
 
 import cartopy.crs as ccrs
 import cartopy.util as cutil
-import matplotlib.colors as mc
 import numpy as np
 import xarray as xr
 from dateutil.relativedelta import relativedelta
+from matplotlib.figure import Axes
 
 from keeler.consts import KELVIN_OFFSET, YEARS_IN_SECONDS
 
 
-def plot_land(ax, land_frac, threshold=0.5):
+def plot_land(ax: Axes, land_frac: xr.DataArray, threshold=0.5):
+    """
+    Plot the outline of grid cells that contain a land fraction greater than the
+    provided threshold. Useful for plotting the paleo outline of continents.
+
+    land_frac: A DataArray from CESM that contains the fraction of land at each
+    given grid cell
+    threshold: The fraction of land that needs to be in a grid cell to be considered
+    in the outline
+    """
     land = land_frac >= threshold
     cyclic_land, cyclic_land_lon = cutil.add_cyclic_point(land, coord=land.lon)
     ax.contour(
@@ -26,7 +34,10 @@ def plot_land(ax, land_frac, threshold=0.5):
     )
 
 
-def fix_dates(climatology_data, date_coord="time"):
+def fix_dates(climatology_data: xr.Dataset, date_coord: str = "time") -> xr.Dataset:
+    """
+    Prescribe dates for a given dataset
+    """
     fixed_dates = [datetime(2000, 1, 1) + relativedelta(months=i) for i in range(12)]
     update_dict = {
         date_coord: fixed_dates,
@@ -45,7 +56,10 @@ def seasonal_plot(figure, season_func, projection=None):
     return axes, func_returns
 
 
-def delta_18O(cam_data):
+def delta_18O(cam_data: xr.Dataset) -> xr.DataArray:
+    """
+    Compute the d18O of precipitation from CAM output.
+    """
     p16O = (
         cam_data.PRECRC_H216Or
         + cam_data.PRECSC_H216Os
@@ -80,6 +94,10 @@ def read_cam_data(
     with_fixed_dates: bool = True,
     with_extra_data: bool = True,
 ) -> xr.Dataset:
+    """
+    Reads in a cam dataset and performs some common operations. Namely, precribing dates, calculating
+    total precipitation, calculating d18O
+    """
     data = xr.open_dataset(path)
     if with_fixed_dates:
         data = fix_dates(data)
@@ -99,10 +117,17 @@ def read_cam_data(
 
 
 def total_precip(dataset: xr.Dataset) -> xr.Dataset:
+    """
+    Calculate total precipitation from convection and large scale movement.
+    """
     return dataset.PRECL + dataset.PRECC
 
 
 def precip_weighted_d18o(dataset: xr.Dataset) -> xr.Dataset:
+    """
+    Calculate d18O weighted by total precipitation for a given dataset where
+    d18O has already be calculated.
+    """
     return dataset.d18o * (dataset.PRECT / dataset.PRECT.sum(dim="time"))
 
 
@@ -119,12 +144,3 @@ def get_value_from_datasets(
     ]
     merged_data = xr.merge(datasets)
     return getattr(merged_data, function_name)(dim=placeholder_coord)
-
-
-def adjust_lightness(color, amount=1.5):
-    try:
-        c = mc.cnames[color]
-    except:
-        c = color
-    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
-    return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
