@@ -1,11 +1,14 @@
 import colorsys
-from typing import List, Tuple, Union
+import os
+from typing import List, Tuple, Union, Optional
 
 import matplotlib.colors as mc
 import numpy as np
 import xarray as xr
+from matplotlib.figure import Figure
 
 Color = Tuple[float, float, float]
+IMAGE_DIR = os.getenv("SAVED_FIG_DIR", default=".")
 
 
 def to_lower_snake_case(*args: List[str]) -> str:
@@ -37,3 +40,27 @@ def adjust_lightness(color: Union[Color, str], amount: float = 1.5) -> Color:
         c = color
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
+
+
+def savefig(
+    fig: Figure, filename: str, dpi: int = 100, version: Optional[int] = None
+) -> None:
+    """
+    Save a figure to a specified directory and version it to ensure that it doesn't overwrite any
+    previously saved figures.
+    """
+    figure_path = os.path.join(
+        IMAGE_DIR, f"{filename}-v{str(version or 1).zfill(3)}.png"
+    )
+    if version is None:
+        version = 1
+        while os.path.exists(figure_path):
+            version += 1
+            if version > 100:
+                raise Exception(
+                    f"To many files named {filename} in directory, tried up to version {version}"
+                )
+            figure_path = os.path.join(
+                IMAGE_DIR, f"{filename}-v{str(version or 1).zfill(3)}.png"
+            )
+    fig.savefig(figure_path, dpi=dpi)
