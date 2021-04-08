@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Union
+import warnings
 
 import cartopy.crs as ccrs
 import cartopy.util as cutil
@@ -23,15 +24,17 @@ def plot_land(ax: Axes, land_frac: xr.DataArray, threshold=0.5):
     """
     land = land_frac >= threshold
     cyclic_land, cyclic_land_lon = cutil.add_cyclic_point(land, coord=land.lon)
-    ax.contour(
-        cyclic_land_lon,
-        land.lat,
-        cyclic_land,
-        transform=ccrs.PlateCarree(),
-        colors="black",
-        levels=[True],
-        linewidths=0.5,
-    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        ax.contour(
+            cyclic_land_lon,
+            land.lat,
+            cyclic_land,
+            transform=ccrs.PlateCarree(),
+            colors="black",
+            levels=[1],
+            linewidths=0.5,
+        )
 
 
 def fix_dates(climatology_data: xr.Dataset, date_coord: str = "time") -> xr.Dataset:
@@ -144,3 +147,20 @@ def get_value_from_datasets(
     ]
     merged_data = xr.merge(datasets)
     return getattr(merged_data, function_name)(dim=placeholder_coord)
+
+
+def combine_datasets(
+    datasets: List[xr.Dataset], labels=None, new_coord="experiment"
+) -> xr.Dataset:
+    """
+    Merge similarly dimensioned dataset together along a new artifical coordinate
+    (default "experiment").
+    """
+    if labels is None:
+        labels = list(range(len(datasets)))
+    datasets = [
+        dataset.expand_dims({new_coord: 1}).assign_coords({new_coord: [label]})
+        for (label, dataset) in zip(labels, datasets)
+    ]
+    merged_data = xr.merge(datasets)
+    return merged_data

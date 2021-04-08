@@ -1,5 +1,7 @@
 import colorsys
 import os
+import time
+from contextlib import contextmanager
 from typing import List, Tuple, Union, Optional
 
 import matplotlib.colors as mc
@@ -9,6 +11,11 @@ from matplotlib.figure import Figure
 
 Color = Tuple[float, float, float]
 IMAGE_DIR = os.getenv("SAVED_FIG_DIR", default=".")
+
+
+def set_image_dir(image_dir):
+    global IMAGE_DIR
+    IMAGE_DIR = image_dir
 
 
 def to_lower_snake_case(*args: List[str]) -> str:
@@ -64,3 +71,15 @@ def savefig(
                 IMAGE_DIR, f"{filename}-v{str(version or 1).zfill(3)}.png"
             )
     fig.savefig(figure_path, dpi=dpi)
+
+
+def timer(timer_name="timer", format="s"):
+    @contextmanager
+    def timer(*args, **kwargs):
+        start = time.time()
+        yield
+        elapsed = time.time() - start
+
+        if format == "ms":
+            elapsed *= 1000
+        print(f"{timer_name} took {elapsed:.2f}{format}")

@@ -5,6 +5,8 @@ import numpy as np
 import xarray as xr
 from cartopy import crs as ccrs, util as cutil
 from matplotlib.figure import Figure
+from matplotlib import ticker
+
 
 from cesm_toolbox.paleoclimate import plot_land, seasonal_plot
 from cesm_toolbox.utils import get_max_colormap_value
@@ -122,3 +124,13 @@ def plot_geospatial_scalar_differences(
 
     fig.suptitle(f"Difference Plots for {col.name}")
     return fig
+
+
+@ticker.FuncFormatter
+def lat_formatter(x, pos):
+    if x > 0:
+        return f"{x:.0f}N"
+    elif x < 0:
+        return f"{abs(x):.0f}S"
+    else:
+        return f"{x:.0f}"
