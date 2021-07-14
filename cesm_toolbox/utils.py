@@ -70,12 +70,18 @@ def adjust_lightness(color: Union[Color, str], amount: float = 1.5) -> Color:
 
 
 def savefig(
-    fig: Figure, filename: str, dpi: int = 100, version: Optional[int] = None
+    fig: Figure,
+    filename: str,
+    dpi: int = 100,
+    version: Optional[int] = None,
+    facecolor: Optional[str] = "white",
 ) -> None:
     """
     Save a figure to a specified directory and version it to ensure that it doesn't overwrite any
     previously saved figures.
     """
+    if facecolor is not None:
+        fig.patch.set_facecolor(facecolor)
     figure_path = os.path.join(
         IMAGE_DIR, f"{filename}-v{str(version or 1).zfill(3)}.png"
     )
