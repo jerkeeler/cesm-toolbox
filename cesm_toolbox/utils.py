@@ -1,12 +1,13 @@
 import colorsys
 import os
 import time
-from contextlib import contextmanager
+from contextlib import ContextDecorator
 from typing import List, Tuple, Union, Optional
 
 import matplotlib.colors as mc
 import numpy as np
 import xarray as xr
+from cartopy import util as cutil
 from matplotlib.figure import Figure
 
 Color = Tuple[float, float, float]
@@ -16,6 +17,25 @@ IMAGE_DIR = os.getenv("SAVED_FIG_DIR", default=".")
 def set_image_dir(image_dir):
     global IMAGE_DIR
     IMAGE_DIR = image_dir
+
+
+def cyclitize(dataset: xr.DataArray) -> xr.DataArray:
+    """
+    Take a dataarray and add cyclic longitude points for easy plotting. Return
+    a new dataarray to make life easier for everyone.
+    """
+    cyclic_data, cyclic_lon = cutil.add_cyclic_point(dataset, coord=dataset.lon)
+    new_dataset = xr.DataArray(
+        cyclic_data,
+        coords={
+            **dataset.coords,
+            "lon": cyclic_lon,
+        },
+        dims=dataset.dims,
+        attrs=dataset.attrs,
+        name=dataset.name,
+    )
+    return new_dataset
 
 
 def to_lower_snake_case(*args: List[str]) -> str:
@@ -73,13 +93,32 @@ def savefig(
     fig.savefig(figure_path, dpi=dpi)
 
 
-def timer(timer_name="timer", format="s"):
-    @contextmanager
-    def timer(*args, **kwargs):
-        start = time.time()
-        yield
-        elapsed = time.time() - start
+class timer(ContextDecorator):
+    """
+    Use as an annotation to wrap a function and create a timer for that function
+    to measure wall clock timing. Can also be used as a contextmanager:
+
+    with timer(name="potato"):
+        time.sleep(2) # do stuff
+
+    @timer(name="funcname")
+    def test():
+        time.sleep(3) # do stuff
+    """
+
+    def __init__(self, name="timer", format="s"):
+        self.name = name
+        self.format = format
+
+    def __enter__(self):
+        self.start = time.time()
+        return self
+
+    def __exit__(self, *exc):
+        elapsed = time.time() - self.start
 
         if format == "ms":
             elapsed *= 1000
-        print(f"{timer_name} took {elapsed:.2f}{format}")
+
+        print(f"{self.name} took {elapsed:.2f}{self.format}")
+        return False

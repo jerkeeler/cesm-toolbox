@@ -18,7 +18,7 @@ from cesm_toolbox.utils import to_lower_snake_case
 Self = TypeVar("Self")
 
 
-class GraphBuilder:
+class CAMGraphBuilder:
     """
     This class follows the builder pattern for defining features, limits, and attributes from which to makes graphs
     given an xarray dataset. You can use this class to quickly and easily generate a wide variety of plots for a
@@ -26,7 +26,7 @@ class GraphBuilder:
 
     Usage:
     ------
-    GraphBuilder()
+    CAMGraphBuilder()
         .with_dimensions([["path/data1.nc", "path/data2.nc"]
                           ["path/data3.nc", "path/data4.nc"]])
         .with_dimension_labels([["Control 3x CO2", "Control 6x CO2"]
