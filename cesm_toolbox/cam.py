@@ -4,27 +4,7 @@ import xarray as xr
 from dateutil.relativedelta import relativedelta
 
 from .consts import KELVIN_OFFSET, YEAR_IN_SECONDS
-
-
-def fix_dates(
-    climatology_data: xr.Dataset, date_coord: str = "time", fake_year: int = 1994
-) -> xr.Dataset:
-    """
-    Prescribe dates for a given dataset since the timestamps are meaningless in
-    the output file and only the order of the months matter (e.g. the first
-    month is always January)
-
-    fake_year - the year to set the dates to, this should be a NON-leap year
-    as per https://www.cesm.ucar.edu/models/cesm1.0/cesm/cesm_doc_1_0_4/x3088.html
-    which states that leap years are not being used
-    """
-    fixed_dates = [
-        datetime(fake_year, 1, 1) + relativedelta(months=i) for i in range(12)
-    ]
-    update_dict = {
-        date_coord: fixed_dates,
-    }
-    return climatology_data.assign_coords(**update_dict)
+from .utils import fix_dates
 
 
 def delta_18O(cam_data: xr.Dataset) -> xr.DataArray:
