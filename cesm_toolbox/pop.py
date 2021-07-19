@@ -48,7 +48,7 @@ def delta_18o(pop_data: xr.Dataset) -> xr.DataArray:
 
 
 def read_pop_data(
-    path: str, with_fixed_dates: bool = True, with_extra_data: bool = True
+    path: str, with_fixed_dates: bool = True, with_extra_data: bool = False
 ) -> xr.Dataset:
     data = xr.open_dataset(path)
     if with_fixed_dates:

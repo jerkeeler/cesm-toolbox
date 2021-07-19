@@ -1,6 +1,6 @@
 import xarray as xr
 
-from .consts import KELVIN_OFFSET, YEAR_IN_SECONDS
+from .consts import KELVIN_OFFSET, DAY_IN_SECONDS
 from .utils import fix_dates
 
 
@@ -55,7 +55,7 @@ def read_cam_data(
         data = data.assign(d18o=delta_18O(data).assign_attrs(units="per thousand"))
         data = data.assign(PRECT=total_precip(data).assign_attrs(units="m/s"))
         data = data.assign(
-            PRECTmm=(data["PRECT"] * YEAR_IN_SECONDS * 1000 / 365).assign_attrs(
+            PRECTmm=(data["PRECT"] * DAY_IN_SECONDS * 1000).assign_attrs(
                 units="mm/day"
             )
         )
