@@ -11,7 +11,8 @@ from cesm_toolbox.graphs.plotting import (
     plot_geospatial_scalar_differences,
     plot_geospatial_seasonal_scalar,
 )
-from cesm_toolbox.paleoclimate import read_cam_data, plot_land, seasonal_plot
+from cesm_toolbox.cam import read_cam_data
+from cesm_toolbox.paleoclimate import plot_land, seasonal_plot
 from cesm_toolbox.utils import to_lower_snake_case
 
 
