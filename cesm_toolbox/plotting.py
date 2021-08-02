@@ -6,6 +6,7 @@ import cartopy.crs as ccrs
 import matplotlib as mpl
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 from matplotlib.figure import Figure
 
 from cesm_toolbox.paleoclimate import plot_land
@@ -27,6 +28,8 @@ def map_difference_plot(
     regrid_size=(1, 1),
     cmap="viridis",
     norm=None,
+    diff_cmap="RdBu_r",
+    levels=21,
 ) -> Figure:
     # Data maniupulation here
     if data_func is not None:
@@ -54,6 +57,7 @@ def map_difference_plot(
         transform=input_proj,
         cmap=cmap,
         norm=norm,
+        levels=levels,
     )
     ax.gridlines(draw_labels=True, linestyle="--", alpha=0.5)
     plot_land(ax, land)
@@ -73,10 +77,11 @@ def map_difference_plot(
             data.lat,
             data,
             transform=input_proj,
-            cmap="RdBu_r",
+            cmap=diff_cmap,
             norm=colors.CenteredNorm(),
             vmin=vmin,
             vmax=vmax,
+            levels=levels,
         )
         ax.gridlines(draw_labels=True, linestyle="--", alpha=0.5)
         plot_land(ax, land)
@@ -87,3 +92,30 @@ def map_difference_plot(
     cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap="RdBu_r"), ax=axes)
     cbar.set_label(data_label)
     return fig
+
+
+@ticker.FuncFormatter
+def lat_formatter(x, pos):
+    if x > 0:
+        return f"{x:.0f}N"
+    elif x < 0:
+        return f"{abs(x):.0f}S"
+    else:
+        return f"{x:.0f}"
+
+
+def line_plot_style(ax):
+    ax.grid(alpha=0.4)
+    ax.tick_params(axis="x", direction="in")
+    ax.tick_params(axis="y", direction="in")
+
+
+def zonal_plot_style(ax):
+    line_plot_style(ax)
+    ax.set_xlim([-90, 90])
+    ax.xaxis.set_major_formatter(lat_formatter)
+
+
+def month_plot_style(ax):
+    line_plot_style(ax)
+    ax.set_xlim([0, 11])
