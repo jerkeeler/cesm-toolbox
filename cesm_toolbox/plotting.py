@@ -29,13 +29,18 @@ def map_difference_plot(
     cmap="viridis",
     norm=None,
     diff_cmap="RdBu_r",
+    constrained_layout=True,
+    should_diff=True,
     levels=21,
 ) -> Figure:
     # Data maniupulation here
     if data_func is not None:
         datasets = [data_func(d) for d in datasets]
     base_data = datasets[0]
-    diffs = [d - base_data for d in datasets[1:]]
+    if should_diff:
+        diffs = [d - base_data for d in datasets[1:]]
+    else:
+        diffs = datasets[1:]
     if should_cyclitize:
         base_data = cyclitize(base_data)
         diffs = [cyclitize(d) for d in diffs]
@@ -48,7 +53,7 @@ def map_difference_plot(
     num_plots = len(datasets)
     subplots = [int(f"1{num_plots}{i + 2}") for i in range(len(datasets) - 1)]
 
-    fig = plt.figure(figsize=figsize)
+    fig = plt.figure(figsize=figsize, constrained_layout=constrained_layout)
     ax = fig.add_subplot(int(f"1{num_plots}1"), projection=target_proj)
     contour = ax.contourf(
         base_data.lon,
@@ -67,18 +72,21 @@ def map_difference_plot(
 
     vmax = max(np.nanmax(d.values) for d in diffs)
     vmin = min(np.nanmin(d.values) for d in diffs)
-    vmax = max(abs(vmin), abs(vmax))
-    vmin = -vmax
+    if should_diff:
+        vmax = max(abs(vmin), abs(vmax))
+        vmin = -vmax
+
     axes = []
     for data, title, subplot in zip(diffs, titles[1:], subplots):
         ax = fig.add_subplot(subplot, projection=target_proj)
+        diff_norm = colors.CenteredNorm() if should_diff else None
         ax.contourf(
             data.lon,
             data.lat,
             data,
             transform=input_proj,
             cmap=diff_cmap,
-            norm=colors.CenteredNorm(),
+            norm=diff_norm,
             vmin=vmin,
             vmax=vmax,
             levels=levels,
@@ -89,7 +97,8 @@ def map_difference_plot(
         axes.append(ax)
 
     norm = colors.Normalize(vmin=vmin, vmax=vmax)
-    cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap="RdBu_r"), ax=axes)
+    # fig.subplots_adjust(hspace=20)
+    cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=diff_cmap), ax=axes)
     cbar.set_label(data_label)
     return fig
 
