@@ -151,3 +151,20 @@ class timer(ContextDecorator):
 
         print(f"{self.name} took {elapsed:.2f}{self.format}")
         return False
+
+
+def combine_datasets(
+    datasets: List[xr.Dataset], labels=None, new_coord="experiment"
+) -> xr.Dataset:
+    """
+    Merge similarly dimensioned dataset together along a new artifical coordinate
+    (default "experiment").
+    """
+    if labels is None:
+        labels = list(range(len(datasets)))
+    datasets = [
+        dataset.expand_dims({new_coord: 1}).assign_coords({new_coord: [label]})
+        for (label, dataset) in zip(labels, datasets)
+    ]
+    merged_data = xr.merge(datasets)
+    return merged_data

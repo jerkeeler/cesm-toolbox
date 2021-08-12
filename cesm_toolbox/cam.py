@@ -1,7 +1,11 @@
 import xarray as xr
 
+from cartopy import crs as ccrs
+from matplotlib import pyplot as plt
+
 from .consts import KELVIN_OFFSET, DAY_IN_SECONDS
-from .utils import fix_dates
+from .utils import cyclitize, fix_dates
+from .paleoclimate import plot_land
 
 
 def delta_18O(cam_data: xr.Dataset) -> xr.DataArray:
@@ -55,12 +59,23 @@ def read_cam_data(
         data = data.assign(d18o=delta_18O(data).assign_attrs(units="per thousand"))
         data = data.assign(PRECT=total_precip(data).assign_attrs(units="m/s"))
         data = data.assign(
-            PRECTmm=(data["PRECT"] * DAY_IN_SECONDS * 1000).assign_attrs(
-                units="mm/day"
-            )
+            PRECTmm=(data["PRECT"] * DAY_IN_SECONDS * 1000).assign_attrs(units="mm/day")
         )
         data = data.assign(
             d18o_weighted=precip_weighted_d18o(data).assign_attrs(units="per thousand")
         )
         data = data.assign(TSC=(data.TS - KELVIN_OFFSET).assign_attrs(units="C"))
     return data
+
+
+def plot_cam_mask(cam_data, land, projection=ccrs.PlateCarree):
+    def wrapped(mask):
+        mean_TS = cyclitize(cam_data.TS.where(mask).mean(dim="time"))
+        fig = plt.figure(figsize=(12, 8))
+        ax = fig.add_subplot(111, projection=projection())
+        ax.pcolormesh(mean_TS.lon, mean_TS.lat, mean_TS, transform=ccrs.PlateCarree())
+        plot_land(ax, land)
+        ax.gridlines(draw_labels=True, alpha=0.5)
+        plt.show()
+
+    return wrapped
