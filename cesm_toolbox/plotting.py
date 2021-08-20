@@ -33,6 +33,7 @@ def map_difference_plot(
     should_diff=True,
     levels=21,
     extent=None,
+    cbar_num_ticks=10,
 ) -> Figure:
     # Data maniupulation here
     if data_func is not None:
@@ -108,6 +109,7 @@ def map_difference_plot(
 
     norm = colors.Normalize(vmin=vmin, vmax=vmax)
     cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
+    cbar.set_ticks(np.linspace(vmin, vmax, cbar_num_ticks))
     cbar.set_label(data_label)
     return fig
 
