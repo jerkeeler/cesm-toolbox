@@ -108,7 +108,7 @@ def map_difference_plot(
             ax.set_global()
 
     norm = colors.Normalize(vmin=vmin, vmax=vmax)
-    cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
+    cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=diff_cmap), ax=axes)
     cbar.set_ticks(np.linspace(vmin, vmax, cbar_num_ticks))
     cbar.set_label(data_label)
     return fig
