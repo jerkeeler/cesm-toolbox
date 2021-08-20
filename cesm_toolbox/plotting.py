@@ -82,7 +82,7 @@ def map_difference_plot(
         vmin = -vmax
 
     axes = []
-    diff_cmap = mpl.cm.get_cmap(diff_cmap, levels=levels)
+    diff_cmap = mpl.cm.get_cmap(diff_cmap, levels)
     for data, title, subplot in zip(diffs, titles[1:], subplots):
         ax = fig.add_subplot(subplot, projection=target_proj)
         diff_norm = colors.CenteredNorm() if should_diff else None
