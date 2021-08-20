@@ -32,6 +32,7 @@ def map_difference_plot(
     constrained_layout=True,
     should_diff=True,
     levels=21,
+    extent=None,
 ) -> Figure:
     # Data maniupulation here
     if data_func is not None:
@@ -69,6 +70,10 @@ def map_difference_plot(
     ax.set_title(titles[0], size=15)
     cbar = fig.colorbar(contour, ax=ax, pad=0.15)
     cbar.set_label(data_label)
+    if extent:
+        ax.set_extent(extent, crs=ccrs.PlateCarree())
+    else:
+        ax.set_global()
 
     vmax = max(np.nanmax(d.values) for d in diffs)
     vmin = min(np.nanmin(d.values) for d in diffs)
@@ -77,6 +82,7 @@ def map_difference_plot(
         vmin = -vmax
 
     axes = []
+    diff_cmap = mpl.cm.get_cmap(diff_cmap, levels=levels)
     for data, title, subplot in zip(diffs, titles[1:], subplots):
         ax = fig.add_subplot(subplot, projection=target_proj)
         diff_norm = colors.CenteredNorm() if should_diff else None
@@ -95,10 +101,13 @@ def map_difference_plot(
         plot_land(ax, land)
         ax.set_title(f"{title} - {titles[0]}", size=15)
         axes.append(ax)
+        if extent:
+            ax.set_extent(extent, crs=ccrs.PlateCarree())
+        else:
+            ax.set_global()
 
     norm = colors.Normalize(vmin=vmin, vmax=vmax)
-    # fig.subplots_adjust(hspace=20)
-    cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=diff_cmap), ax=axes)
+    cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes)
     cbar.set_label(data_label)
     return fig
 
@@ -117,6 +126,9 @@ def line_plot_style(ax):
     ax.grid(alpha=0.4)
     ax.tick_params(axis="x", direction="in")
     ax.tick_params(axis="y", direction="in")
+    ax.xaxis.label.set_size(15)
+    ax.yaxis.label.set_size(15)
+    ax.title.set_size(20)
 
 
 def zonal_plot_style(ax):
