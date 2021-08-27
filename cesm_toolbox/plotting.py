@@ -140,7 +140,7 @@ def seasonal_difference_plot(
     ]
     if should_cyclitize:
         diffs = [cyclitize(d) for d in diffs]
-    if mask:
+    if mask is not None:
         diffs = [d.where(mask) for d in diffs]
 
     vmax = max(
