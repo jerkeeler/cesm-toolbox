@@ -127,6 +127,7 @@ def seasonal_difference_plot(
     should_cyclitize=True,
     draw_labels=True,
     time_func=np.mean,
+    mask: xr.DataArray = None,
 ) -> Figure:
     if data_func:
         base_dataset = data_func(base_dataset)
@@ -139,6 +140,8 @@ def seasonal_difference_plot(
     ]
     if should_cyclitize:
         diffs = [cyclitize(d) for d in diffs]
+    if mask:
+        diffs = [d.where(mask) for d in diffs]
 
     vmax = max(
         max(abs(float(np.nanmax(d.values))), abs(float(np.nanmin(d.values))))
