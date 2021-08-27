@@ -130,7 +130,7 @@ def seasonal_difference_plot(
     time_func=np.mean,
 ) -> Figure:
     if data_func:
-        base_dataset = data_func(dataset)
+        base_dataset = data_func(base_dataset)
         dataset = data_func(dataset)
     grouped_base = base_dataset.groupby("time.season").reduce(time_func, dim="time")
     grouped_data = dataset.groupby("time.season").reduce(time_func, dim="time")
@@ -145,7 +145,6 @@ def seasonal_difference_plot(
         max(abs(float(np.nanmax(d.values))), abs(float(np.nanmin(d.values))))
         for d in diffs
     )
-    print(11111, vmax)
 
     fig, axes = plt.subplots(
         nrows=2,
