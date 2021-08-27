@@ -30,3 +30,5 @@ MONTHS_ABR = [
     "Nov",
     "Dec",
 ]
+G = 9.807
+EARTH_RADIUS = 6.3781 * 10 ** 6

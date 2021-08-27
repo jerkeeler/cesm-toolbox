@@ -3,7 +3,7 @@ import xarray as xr
 from cartopy import crs as ccrs
 from matplotlib import pyplot as plt
 
-from .consts import KELVIN_OFFSET, DAY_IN_SECONDS
+from .consts import KELVIN_OFFSET, DAY_IN_SECONDS, G, EARTH_RADIUS
 from .utils import cyclitize, fix_dates
 from .paleoclimate import plot_land
 
@@ -43,6 +43,15 @@ def precip_weighted_d18o(dataset: xr.Dataset) -> xr.Dataset:
     return dataset.d18o * (dataset.PRECT / dataset.PRECT.sum(dim="time"))
 
 
+def elevation(dataset: xr.Dataset) -> xr.Dataset:
+    """
+    Calculate elevation (in meters) from surface geopotential height.
+    """
+    phis = dataset.PHIS.max(dim="time")
+    elevation = (phis * EARTH_RADIUS) / (G * EARTH_RADIUS - phis)
+    return elevation
+
+
 def read_cam_data(
     path: str,
     with_fixed_dates: bool = True,
@@ -65,6 +74,9 @@ def read_cam_data(
             d18o_weighted=precip_weighted_d18o(data).assign_attrs(units="per thousand")
         )
         data = data.assign(TSC=(data.TS - KELVIN_OFFSET).assign_attrs(units="C"))
+        data = data.assign(ELE=elevation(data)).assign_attrs(
+            units="m", long_name="Elevation"
+        )
     return data
 
 

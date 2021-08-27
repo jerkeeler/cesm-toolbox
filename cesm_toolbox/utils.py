@@ -168,3 +168,11 @@ def combine_datasets(
     ]
     merged_data = xr.merge(datasets)
     return merged_data
+
+
+def central_lon(extent: List[Union[int, float]]) -> float:
+    """
+    Return the central longitude given an array defining extents such as [x0, x1, y0, y1]. This is useful for
+    ensuring that your projection is always centered over your extent area to reduce distortions.
+    """
+    return sum(extent[:2]) / 2
