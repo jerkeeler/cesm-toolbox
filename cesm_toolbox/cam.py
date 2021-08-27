@@ -74,8 +74,8 @@ def read_cam_data(
             d18o_weighted=precip_weighted_d18o(data).assign_attrs(units="per thousand")
         )
         data = data.assign(TSC=(data.TS - KELVIN_OFFSET).assign_attrs(units="C"))
-        data = data.assign(ELE=elevation(data)).assign_attrs(
-            units="m", long_name="Elevation"
+        data = data.assign(
+            ELE=elevation(data).assign_attrs(units="m", long_name="Elevation")
         )
     return data
 
