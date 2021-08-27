@@ -145,6 +145,7 @@ def seasonal_difference_plot(
         max(abs(float(np.nanmax(d.values))), abs(float(np.nanmin(d.values))))
         for d in diffs
     )
+    print(11111, vmax)
 
     fig, axes = plt.subplots(
         nrows=2,
