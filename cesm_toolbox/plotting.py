@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 
 from cesm_toolbox.consts import SEASONS
 from cesm_toolbox.paleoclimate import plot_land
-from cesm_toolbox.utils import cyclitize
+from cesm_toolbox.utils import cyclitize, central_lon
 from cesm_toolbox.pop import regrid
 
 
@@ -145,10 +145,14 @@ def seasonal_difference_plot(
         for d in diffs
     )
 
+    central_longitude = central_lon(extent) if extent else 0
+
     fig, axes = plt.subplots(
         nrows=2,
         ncols=2,
-        subplot_kw={"projection": output_projection()},
+        subplot_kw={
+            "projection": output_projection(central_longitude=central_longitude)
+        },
         figsize=figsize,
     )
     bounds = np.linspace(-vmax, vmax, levels)
