@@ -3,12 +3,11 @@ from typing import List
 import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
-import matplotlib as mpl
-import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 from matplotlib.figure import Figure
 
+from cesm_toolbox.consts import SEASONS
 from cesm_toolbox.paleoclimate import plot_land
 from cesm_toolbox.utils import cyclitize
 from cesm_toolbox.pop import regrid
@@ -31,7 +30,7 @@ def map_difference_plot(
     diff_cmap="RdBu_r",
     constrained_layout=True,
     should_diff=True,
-    levels=21,
+    levels=20,
     extent=None,
     cbar_num_ticks=10,
 ) -> Figure:
@@ -55,9 +54,14 @@ def map_difference_plot(
     num_plots = len(datasets)
     subplots = [int(f"1{num_plots}{i + 2}") for i in range(len(datasets) - 1)]
 
-    fig = plt.figure(figsize=figsize, constrained_layout=constrained_layout)
-    ax = fig.add_subplot(int(f"1{num_plots}1"), projection=target_proj)
-    contour = ax.contourf(
+    fig, axes = plt.subplots(
+        nrows=1,
+        ncols=num_plots,
+        subplot_kw={"projection": target_proj},
+        figsize=figsize,
+        constrained_layout=constrained_layout,
+    )
+    contour = axes[0].contourf(
         base_data.lon,
         base_data.lat,
         base_data,
@@ -66,15 +70,15 @@ def map_difference_plot(
         norm=norm,
         levels=levels,
     )
-    ax.gridlines(draw_labels=True, linestyle="--", alpha=0.5)
-    plot_land(ax, land)
-    ax.set_title(titles[0], size=15)
-    cbar = fig.colorbar(contour, ax=ax, pad=0.15)
+    axes[0].gridlines(draw_labels=True, linestyle="--", alpha=0.5)
+    plot_land(axes[0], land)
+    axes[0].set_title(titles[0], size=15)
+    cbar = fig.colorbar(contour, ax=axes[0], pad=0.15)
     cbar.set_label(data_label)
     if extent:
-        ax.set_extent(extent, crs=ccrs.PlateCarree())
+        axes[0].set_extent(extent, crs=ccrs.PlateCarree())
     else:
-        ax.set_global()
+        axes[0].set_global()
 
     vmax = max(np.nanmax(d.values) for d in diffs)
     vmin = min(np.nanmin(d.values) for d in diffs)
@@ -82,21 +86,17 @@ def map_difference_plot(
         vmax = max(abs(vmin), abs(vmax))
         vmin = -vmax
 
-    axes = []
-    diff_cmap = mpl.cm.get_cmap(diff_cmap, levels)
-    for data, title, subplot in zip(diffs, titles[1:], subplots):
-        ax = fig.add_subplot(subplot, projection=target_proj)
-        diff_norm = colors.CenteredNorm() if should_diff else None
-        ax.contourf(
+    bounds = np.linspace(vmin, vmax, levels)
+    for data, title, subplot, ax in zip(diffs, titles[1:], subplots, axes[1:].flat):
+        diff_contour = ax.contourf(
             data.lon,
             data.lat,
             data,
             transform=input_proj,
             cmap=diff_cmap,
-            norm=diff_norm,
             vmin=vmin,
             vmax=vmax,
-            levels=levels,
+            levels=bounds,
         )
         ax.gridlines(draw_labels=True, linestyle="--", alpha=0.5)
         plot_land(ax, land)
@@ -107,9 +107,72 @@ def map_difference_plot(
         else:
             ax.set_global()
 
-    norm = colors.Normalize(vmin=vmin, vmax=vmax)
-    cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=diff_cmap), ax=axes)
+    cbar = fig.colorbar(diff_contour, ax=axes[1:].ravel().tolist())
     cbar.set_ticks(np.linspace(vmin, vmax, cbar_num_ticks))
+    cbar.set_label(data_label)
+    return fig
+
+
+def seasonal_difference_plot(
+    base_dataset: xr.DataArray,
+    dataset: xr.DataArray,
+    data_label: str,
+    land: xr.DataArray,
+    data_func=None,
+    input_projection=ccrs.PlateCarree,
+    output_projection=ccrs.PlateCarree,
+    extent=None,
+    diff_cmap="RdBu_r",
+    levels=20,
+    figsize=(24, 12),
+    should_cyclitize=True,
+    draw_labels=True,
+    time_func=np.mean,
+) -> Figure:
+    if data_func:
+        base_dataset = data_func(dataset)
+        dataset = data_func(dataset)
+    grouped_base = base_dataset.groupby("time.season").reduce(time_func, dim="time")
+    grouped_data = dataset.groupby("time.season").reduce(time_func, dim="time")
+    diffs = [
+        grouped_data.sel(season=season) - grouped_base.sel(season=season)
+        for season in SEASONS
+    ]
+    if should_cyclitize:
+        diffs = [cyclitize(d) for d in diffs]
+
+    vmax = max(
+        max(abs(float(np.nanmax(d.values))), abs(float(np.nanmin(d.values))))
+        for d in diffs
+    )
+
+    fig, axes = plt.subplots(
+        nrows=2,
+        ncols=2,
+        subplot_kw={"projection": output_projection()},
+        figsize=figsize,
+    )
+    bounds = np.linspace(-vmax, vmax, levels)
+    for season, ax, diff in zip(SEASONS, axes.flat, diffs):
+        diff_contour = ax.contourf(
+            diff.lon,
+            diff.lat,
+            diff,
+            transform=input_projection(),
+            cmap=diff_cmap,
+            levels=bounds,
+            vmin=-vmax,
+            vmax=vmax,
+        )
+        plot_land(ax, land)
+        if extent:
+            ax.set_extent(extent)
+        else:
+            ax.set_global()
+        ax.gridlines(draw_labels=draw_labels, alpha=0.5)
+        ax.set_title(season, size=20)
+
+    cbar = fig.colorbar(diff_contour, ax=axes.ravel().tolist())
     cbar.set_label(data_label)
     return fig
 
