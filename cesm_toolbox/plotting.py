@@ -101,7 +101,6 @@ def map_difference_plot(
         ax.gridlines(draw_labels=True, linestyle="--", alpha=0.5)
         plot_land(ax, land)
         ax.set_title(f"{title} - {titles[0]}", size=15)
-        axes.append(ax)
         if extent:
             ax.set_extent(extent, crs=ccrs.PlateCarree())
         else:
