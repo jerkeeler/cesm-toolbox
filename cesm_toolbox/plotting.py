@@ -107,7 +107,6 @@ def map_difference_plot(
             ax.set_global()
 
     cbar = fig.colorbar(diff_contour, ax=axes[1:].ravel().tolist())
-    cbar.set_ticks(np.linspace(vmin, vmax, cbar_num_ticks))
     cbar.set_label(data_label)
     return fig
 
