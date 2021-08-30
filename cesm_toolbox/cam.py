@@ -52,6 +52,14 @@ def elevation(dataset: xr.Dataset) -> xr.Dataset:
     return elevation
 
 
+def net_precip(dataset: xr.Dataset) -> xr.Dataset:
+    """
+    Calculates the net precipitation by determining the evaportion from the
+    QFLX data attribute.
+    """
+    return dataset.PRECTmm - dataset.QFLX * DAY_IN_SECONDS
+
+
 def read_cam_data(
     path: str,
     with_fixed_dates: bool = True,
@@ -76,6 +84,12 @@ def read_cam_data(
         data = data.assign(TSC=(data.TS - KELVIN_OFFSET).assign_attrs(units="C"))
         data = data.assign(
             ELE=elevation(data).assign_attrs(units="m", long_name="Elevation")
+        )
+        data = data.assign(
+            NET_PRECT=net_precip(data).assign_attrs(
+                units="mm/day",
+                long_name="Net precipitation (precipitation - evaporation)",
+            )
         )
     return data
 
