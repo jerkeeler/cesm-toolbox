@@ -182,6 +182,73 @@ def seasonal_difference_plot(
     return fig
 
 
+def seasonal_plot(
+    dataset: xr.DataArray,
+    data_label: str,
+    land: xr.DataArray,
+    data_func=None,
+    input_projection=ccrs.PlateCarree,
+    output_projection=ccrs.PlateCarree,
+    extent=None,
+    cmap="viridis",
+    levels=20,
+    figsize=(24, 12),
+    should_cyclitize=True,
+    should_norm=True,
+    draw_labels=True,
+    time_func=np.mean,
+    mask: xr.DataArray = None,
+) -> Figure:
+    if data_func:
+        dataset = data_func(dataset)
+    grouped_data = dataset.groupby("time.season").reduce(time_func, dim="time")
+    season_data = [grouped_data.sel(season=season) for season in SEASONS]
+    if should_cyclitize:
+        season_data = [cyclitize(d) for d in season_data]
+    if mask is not None:
+        season_data = [d.where(mask) for d in season_data]
+
+    vmax = max(np.nanmax(d.values) for d in season_data)
+    vmin = min(np.nanmin(d.values) for d in season_data)
+    if should_norm:
+        vmax = max(abs(vmin), abs(vmax))
+        vmin = -vmax
+
+    central_longitude = central_lon(extent) if extent else 0
+
+    fig, axes = plt.subplots(
+        nrows=2,
+        ncols=2,
+        subplot_kw={
+            "projection": output_projection(central_longitude=central_longitude)
+        },
+        figsize=figsize,
+    )
+    bounds = np.linspace(vmin, vmax, levels)
+    for season, ax, diff in zip(SEASONS, axes.flat, season_data):
+        season_contour = ax.contourf(
+            diff.lon,
+            diff.lat,
+            diff,
+            transform=input_projection(),
+            cmap=cmap,
+            levels=bounds,
+            vmin=vmin,
+            vmax=vmax,
+        )
+        plot_land(ax, land)
+        if extent:
+            ax.set_extent(extent)
+        else:
+            ax.set_global()
+        ax.gridlines(draw_labels=draw_labels, alpha=0.5)
+        ax.set_title(season, size=20)
+
+    cbar = fig.colorbar(season_contour, ax=axes.ravel().tolist())
+    cbar.set_label(data_label)
+    return fig
+
+
 @ticker.FuncFormatter
 def lat_formatter(x, pos):
     if x > 0:
