@@ -9,11 +9,14 @@ import matplotlib.colors as mc
 import numpy as np
 import xarray as xr
 from cartopy import util as cutil
+from cartopy.geodesic import Geodesic
 from dateutil.relativedelta import relativedelta
 from matplotlib.figure import Figure
+from shapely.geometry import LineString
 
 Color = Tuple[float, float, float]
 IMAGE_DIR = os.getenv("SAVED_FIG_DIR", default=".")
+GEODESIC = Geodesic()
 
 
 def set_image_dir(image_dir):
@@ -176,3 +179,69 @@ def central_lon(extent: List[Union[int, float]]) -> float:
     ensuring that your projection is always centered over your extent area to reduce distortions.
     """
     return sum(extent[:2]) / 2
+
+
+def get_region_mask_from_point(
+    grid: xr.Dataset,
+    lat: float,
+    lon: float,
+    lon_offset: float = 5,
+    lat_offset: float = 2.5,
+):
+    """
+    Return lat/lon mask around a given lat/lon pair. Assuming the lat/lon pair is in the center of a grid point, this
+    mask should provide a 3x3 grid cell mask over that point (with default lon/lat offsets). Useful for conducting
+    point analysis.
+    """
+    return (
+        (grid.lat < lat + lat_offset)
+        & (grid.lat > lat - lat_offset)
+        & (grid.lon < lon + lon_offset)
+        & (grid.lon > lon - lon_offset)
+    )
+
+
+def find_closest_idx(values: np.ndarray, to_find: float) -> int:
+    """Returns the index of the value that is closest to the one you're trying to find."""
+    return (np.abs(values - to_find)).argmin()
+
+
+def find_closest_cell(
+    grid: xr.Dataset, lat: float, lon: float
+) -> Tuple[Tuple[int, int], Tuple[float, float]]:
+    """
+    Given a grid that has lat/lon, find the closest cell center that match the lat/lon pair provided.
+    """
+    lat_idx = find_closest_idx(grid.lat.values, lat)
+    lon_idx = find_closest_idx(grid.lon.values, lon)
+    grid_lat, grid_lon = grid.lat.values[lat_idx], grid.lon.values[lon_idx]
+    return (lat_idx, lon_idx), (grid_lat, grid_lon)
+
+
+def find_all_closest_cells(grid: xr.Dataset, lat_lon_pairs: np.ndarray):
+    """
+    For each lat/lon pair find the grid point that is closest to the pair, compile a list and return it.
+    """
+    indicies = [
+        (find_closest_idx(grid.lat.values, lat), find_closest_idx(grid.lon.values, lon))
+        for (lat, lon) in lat_lon_pairs
+    ]
+    return np.array(
+        [
+            (grid.lat.values[lat_idx], grid.lon.values[lon_idx])
+            for (lat_idx, lon_idx) in indicies
+        ]
+    )
+
+
+def great_circle_dist(
+    point1: Tuple[float, float], point2: Tuple[float, float]
+) -> float:
+    """
+    Finds geodesic great cricle distance between two pairs of lat/lon points. The "true" distance between the points
+    on a sphere. Or at least as close an approximation as possible.
+
+    Returns values in meters.
+    """
+    line = LineString([point1, point2])
+    return GEODESIC.geometry_length(line)

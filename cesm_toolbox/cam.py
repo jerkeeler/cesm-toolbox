@@ -95,11 +95,16 @@ def read_cam_data(
 
 
 def plot_cam_mask(cam_data, land, projection=ccrs.PlateCarree):
-    def wrapped(mask):
-        mean_TS = cyclitize(cam_data.TS.where(mask).mean(dim="time"))
+    mean_TS = cam_data.TS.mean(dim="time")
+
+    def wrapped(mask, contour=False):
+        data = cyclitize(mean_TS.where(mask))
         fig = plt.figure(figsize=(12, 8))
         ax = fig.add_subplot(111, projection=projection())
-        ax.pcolormesh(mean_TS.lon, mean_TS.lat, mean_TS, transform=ccrs.PlateCarree())
+        if contour:
+            ax.contourf(data.lon, data.lat, data, transform=ccrs.PlateCarree())
+        else:
+            ax.pcolormesh(data.lon, data.lat, data, transform=ccrs.PlateCarree())
         plot_land(ax, land)
         ax.gridlines(draw_labels=True, alpha=0.5)
         plt.show()
