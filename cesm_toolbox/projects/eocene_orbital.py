@@ -3,16 +3,6 @@
 """
 from ..proxy_data import ProxyData, ProxySource, ProxyLocality
 
-# def load_cam_data():
-#     orb_modern_3x = read_cam_data(f"{DATA_PATH}/b.e12.B1850C5CN.f19_g16.iPETM03xx2.01/b.e12.B1850C5CN.f19_g16.iPETM03xx2.01.cam.h0.0350-0399.climo.nc")
-#     orb_maxN_3x = read_cam_data(f"{DATA_PATH}/b.e12.B1850C5CN.f19_g16.iPETM03x.OrbMaxN.01/b.e12.B1850C5CN.f19_g16.iPETM03x.OrbMaxN.01.cam.h0.2601-2700.climo.nc")
-#     orb_maxS_3x = read_cam_data(f"{DATA_PATH}/b.e12.B1850C5CN.f19_g16.iPETM03x.OrbMaxS.01/b.e12.B1850C5CN.f19_g16.iPETM03x.OrbMaxS.01.cam.h0.2601-2700.climo.nc")
-#     orb_min_3x = read_cam_data(f"{DATA_PATH}/b.e12.B1850C5CN.f19_g16.iPETM03x.OrbMin.01/b.e12.B1850C5CN.f19_g16.iPETM03x.OrbMin.01.cam.h0.2601-2700.climo.nc")
-#
-#     orb_modern_6x = read_cam_data(f"{DATA_PATH}/b.e12.B1850C5CN.f19_g16.iPETM06x.09/b.e12.B1850C5CN.f19_g16.iPETM06x.09.cam.h0.2101-2200.climo.nc")
-#     orb_maxN_6x = read_cam_data(f"{DATA_PATH}/b.e12.B1850C5CN.f19_g16.iPETM06x.OrbMaxN.01/b.e12.B1850C5CN.f19_g16.iPETM06x.OrbMaxN.01.cam.h0.2601-2700.climo.nc")
-#     orb_maxS_6x = read_cam_data(f"{DATA_PATH}/b.e12.B1850C5CN.f19_g16.iPETM06x.OrbMaxS.01/b.e12.B1850C5CN.f19_g16.iPETM06x.OrbMaxS.01.cam.h0.2601-2700.climo.nc")
-#     orb_min_6x = read_cam_data(f"{DATA_PATH}/b.e12.B1850C5CN.f19_g16.iPETM06x.OrbMin.01/b.e12.B1850C5CN.f19_g16.iPETM06x.OrbMin.01.cam.h0.2601-2700.climo.nc")
 
 PROXY_DATA = [
     ProxyData(
