@@ -33,17 +33,6 @@ def plot_land(ax: Axes, land_frac: xr.DataArray, threshold=0.5):
         )
 
 
-def seasonal_plot(figure, season_func, projection=None):
-    projection = projection if projection is not None else ccrs.Robinson()
-    axes = [
-        figure.add_subplot(subplot, projection=projection)
-        for subplot in (221, 222, 223, 224)
-    ]
-    seasons = ["DJF", "MAM", "JJA", "SON"]
-    func_returns = [season_func(season, ax) for season, ax in zip(seasons, axes)]
-    return axes, func_returns
-
-
 def clustering(cluster_algo, data, reshape=True):
     stacked = data.stack(z=("lat", "lon"))
     reshaped = stacked.values
