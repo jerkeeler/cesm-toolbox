@@ -32,7 +32,7 @@ def map_difference_plot(
     should_diff=True,
     levels=20,
     extent=None,
-    cbar_num_ticks=10,
+    land_threshold=0.75,
 ) -> Figure:
     # Data maniupulation here
     if data_func is not None:
@@ -71,7 +71,7 @@ def map_difference_plot(
         levels=levels,
     )
     axes[0].gridlines(draw_labels=True, linestyle="--", alpha=0.5)
-    plot_land(axes[0], land)
+    plot_land(axes[0], land, threshold=land_threshold)
     axes[0].set_title(titles[0], size=15)
     cbar = fig.colorbar(contour, ax=axes[0], pad=0.15)
     cbar.set_label(data_label)
@@ -99,7 +99,7 @@ def map_difference_plot(
             levels=bounds,
         )
         ax.gridlines(draw_labels=True, linestyle="--", alpha=0.5)
-        plot_land(ax, land)
+        plot_land(ax, land, threshold=land_threshold)
         ax.set_title(f"{title} - {titles[0]}", size=15)
         if extent:
             ax.set_extent(extent, crs=ccrs.PlateCarree())
@@ -127,6 +127,7 @@ def seasonal_difference_plot(
     draw_labels=True,
     time_func=np.mean,
     mask: xr.DataArray = None,
+    land_threshold=0.75,
 ) -> Figure:
     if data_func:
         base_dataset = data_func(base_dataset)
@@ -169,7 +170,7 @@ def seasonal_difference_plot(
             vmin=-vmax,
             vmax=vmax,
         )
-        plot_land(ax, land)
+        plot_land(ax, land, threshold=land_threshold)
         if extent:
             ax.set_extent(extent)
         else:
