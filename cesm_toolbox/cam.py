@@ -43,6 +43,26 @@ def precip_weighted_d18o(dataset: xr.Dataset) -> xr.Dataset:
     return dataset.d18o * (dataset.PRECT / dataset.PRECT.sum(dim="time"))
 
 
+def calc_delta_d(dataset):
+    """
+    Calculate deuterium excess (dD) of precipitation for a given dataset and cam output.
+    """
+    p16o = (
+        dataset.PRECRC_H216Or
+        + dataset.PRECSC_H216Os
+        + dataset.PRECRL_H216OR
+        + dataset.PRECSL_H216OS
+    )
+    Dp = (
+        dataset.PRECRC_HDOr
+        + dataset.PRECSC_HDOs
+        + dataset.PRECRL_HDOR
+        + dataset.PRECSL_HDOS
+    )
+    dDp = (Dp / p16o - 1.0) * 1000.0
+    return dDp
+
+
 def elevation(dataset: xr.Dataset) -> xr.Dataset:
     """
     Calculate elevation (in meters) from surface geopotential height.

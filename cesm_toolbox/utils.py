@@ -245,3 +245,12 @@ def great_circle_dist(
     """
     line = LineString([point1, point2])
     return GEODESIC.geometry_length(line)
+
+
+def zonal_weighted(latitudes: xr.DataArray) -> xr.DataArray:
+    """
+    Calculate the zonal weights by area for a given set of latitudes. These weights should be used prior to calculating
+    averages across latitudes to properly weight differences in area across and rectilinear grid.
+    """
+    coslat = np.cos(np.deg2rad(latitudes))
+    return coslat / coslat.mean(dim="lat")
