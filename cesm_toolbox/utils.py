@@ -3,6 +3,7 @@ import os
 import time
 from contextlib import ContextDecorator
 from datetime import datetime
+from functools import reduce
 from typing import List, Tuple, Union, Optional
 
 import matplotlib.colors as mc
@@ -254,3 +255,14 @@ def zonal_weighted(latitudes: xr.DataArray) -> xr.DataArray:
     """
     coslat = np.cos(np.deg2rad(latitudes))
     return coslat / coslat.mean(dim="lat")
+
+
+def std_err(data: np.ndarray, axis: Tuple) -> np.ndarray:
+    """
+    Computes the standard error of a given set of data over the given axis. This is useful when combined with the
+    xarray.reduce function, e.g.:
+        zonal_mean_std_err = data.TEMP.reduce(std_err, dim=["time", "lon"])
+    """
+    shapes = [data.shape[a] for a in axis]
+    size = reduce(lambda x, y: x * y, shapes)
+    return np.std(data, axis=axis) / np.sqrt(size)
