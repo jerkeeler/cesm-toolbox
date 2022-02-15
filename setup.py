@@ -7,5 +7,13 @@ setup(
     author="Jeremy Keeler",
     author_email="j@keeler.dev",
     packages=["cesm_toolbox"],
-    install_requires=["cartopy", "numpy", "xarray", "python-dateutil", "matplotlib"],
+    install_requires=[
+        "cartopy",
+        "numpy",
+        "xarray",
+        "python-dateutil",
+        "matplotlib",
+        "xesmf",
+        "shapely",
+    ],
 )
